@@ -35,7 +35,11 @@ public class AuthService {
         user.setUsername(signUpRequest.getUsername());
         user.setEmail(signUpRequest.getEmail());
         user.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
-        user.setRole("user");
+        user.setRole("ROLE_USER");
+
+        user.setBlocked(false);
+        user.setRegistered(true);
+        user.setImageUrl("");
 
         userRepository.save(user);
 
@@ -48,6 +52,10 @@ public class AuthService {
 
         User user = userRepository.findByUsernameOrEmail(input, input)
                 .orElseThrow(() -> new RuntimeException("User not found with provided username or email"));
+
+        if (user.isBlocked()) {
+            throw new RuntimeException("Error: Your account has been blocked by an administrator.");
+        }
 
         if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             String token = jwtUtil.generateJwtToken(user.getUsername());
