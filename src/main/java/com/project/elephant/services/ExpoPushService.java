@@ -29,6 +29,11 @@ public class ExpoPushService {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         for (User user : allUsers) {
+            // --- NEW: Skip users who have turned off push alerts ---
+            if (!user.isPushAlertsEnabled()) {
+                continue;
+            }
+
             String token = user.getPushToken();
 
             if (token != null && !token.isEmpty()) {
