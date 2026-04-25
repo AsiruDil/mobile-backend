@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -37,5 +38,16 @@ public class UserController {
         userRepository.save(user);
 
         return new MessageResponse("Your profile image was updated successfully.");
+    }
+
+    @PutMapping("/{username}/token")
+    public MessageResponse updatePushToken(@PathVariable String username, @RequestBody Map<String, String> request) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setPushToken(request.get("token"));
+        userRepository.save(user);
+
+        return new MessageResponse("Push token updated successfully.");
     }
 }

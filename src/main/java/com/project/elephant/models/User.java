@@ -16,7 +16,11 @@ public class User {
     private String password;
     private String role;
 
+    private String pushToken;
+
     private boolean isBlocked;
     private boolean isRegistered;
     private String imageUrl;
+
+
 }
