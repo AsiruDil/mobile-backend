@@ -3,6 +3,7 @@ package com.project.elephant.controllers;
 import com.project.elephant.dto.response.MessageResponse;
 import com.project.elephant.models.Sighting;
 import com.project.elephant.repository.SightingRepository;
+import com.project.elephant.services.ExpoPushService; // <-- 1. මේක අලුතින් Import කරන්න
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -18,9 +19,11 @@ public class SightingController {
     @Autowired
     private SightingRepository sightingRepository;
 
-    // <-- ADD THIS INJECTION -->
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
+
+    @Autowired
+    private ExpoPushService expoPushService;
 
     @GetMapping
     public ResponseEntity<List<Sighting>> getAllSightings() {
@@ -33,15 +36,23 @@ public class SightingController {
         return ResponseEntity.ok(savedSighting);
     }
 
-    // <-- ADD THIS NEW METHOD -->
     @PostMapping("/alert")
     public ResponseEntity<MessageResponse> triggerCameraAlert(@RequestBody Map<String, Object> payload) {
         String message = (String) payload.get("message");
         System.out.println("🚨 ALERT FROM CAMERA: " + message);
 
-        // Broadcast to React Web Dashboard via WebSocket
+
         messagingTemplate.convertAndSend("/topic/alerts", (Object) payload);
 
+
+        expoPushService.sendAlertToEveryone(message);
+
         return ResponseEntity.ok(new MessageResponse("Alert broadcasted successfully"));
+    }
+
+    @DeleteMapping("/admin/{id}")
+    public ResponseEntity<MessageResponse> deleteSighting(@PathVariable String id) {
+        sightingRepository.deleteById(id);
+        return ResponseEntity.ok(new MessageResponse("Sighting deleted successfully"));
     }
 }
