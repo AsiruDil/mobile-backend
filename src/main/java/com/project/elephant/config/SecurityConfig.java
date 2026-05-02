@@ -41,6 +41,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/news").permitAll()
                         .requestMatchers("/api/sightings/**").permitAll()
                         .requestMatchers("/ws-elephant/**").permitAll()
+                        .requestMatchers("/api/incidents/report").authenticated()
+                        .requestMatchers("/api/incidents/admin/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
                         .anyRequest().authenticated()
                 );
@@ -56,7 +58,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         // Allow your Vite frontend URL
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000","http://localhost:5173","http://localhost:8081",   // Expo Web default
-                "http://192.168.255.231:8081"));
+                "http://192.168.43.147:8081"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
       
     

@@ -8,6 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class IncidentReportService {
@@ -28,10 +29,25 @@ public class IncidentReportService {
         // Mapping the renamed fields
         report.setName(dto.getName());
         report.setContactNumber(dto.getContactNumber());
-
+        report.setStatus("Pending");
         report.setUsername(currentUsername);
         report.setCreatedAt(LocalDateTime.now());
 
         return incidentReportRepository.save(report);
+    }
+
+    public List<IncidentReport> getAllReports() {
+        return incidentReportRepository.findAll();
+    }
+
+    public IncidentReport updateStatus(String id, String status) {
+        IncidentReport report = incidentReportRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Report not found"));
+        report.setStatus(status);
+        return incidentReportRepository.save(report);
+    }
+
+    public void deleteReport(String id) {
+        incidentReportRepository.deleteById(id);
     }
 }
