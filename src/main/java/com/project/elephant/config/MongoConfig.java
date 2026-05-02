@@ -9,21 +9,33 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class MongoConfig {
 
-    // මෙහි අගට : ලකුණක් එක් කිරීමෙන්, variable එක නැති වුවහොත් error එකක් එනවා වෙනුවට හිස් අගයක් ගනී.
+    // Render හි Environment Variables හරහා MONGO_URI අගය ලබා ගැනීම
     @Value("${MONGO_URI:}")
     private String mongoUri;
 
     @Bean
     public MongoClient mongoClient() {
-        // Variable එක හිස් දැයි පරීක්ෂා කර බැලීම
-        if (mongoUri == null || mongoUri.isEmpty() || mongoUri.equals("${MONGO_URI}")) {
-            throw new RuntimeException("නිවැරදි කිරීම් අවශ්‍යයි: Render settings හි MONGO_URI අගය ඇතුළත් කර නැත!");
+        // 1. අගය දෙපැත්තේ ඇති හිස්තැන් (Spaces) ඉවත් කර පිරිසිදු කිරීම
+        String cleanUri = (mongoUri != null) ? mongoUri.trim() : "";
+
+        // 2. අගය ලැබී ඇත්දැයි පරීක්ෂා කිරීම
+        if (cleanUri.isEmpty() || cleanUri.equals("${MONGO_URI}")) {
+            System.err.println("CRITICAL ERROR: MONGO_URI is missing in Render Environment Variables!");
+            throw new RuntimeException("Environment variable MONGO_URI is not set correctly.");
+        }
+
+        // 3. සබැඳිය නිවැරදි Format එකෙන් ආරම්භ වේදැයි බැලීම
+        if (!cleanUri.startsWith("mongodb://") && !cleanUri.startsWith("mongodb+srv://")) {
+            System.err.println("CRITICAL ERROR: Invalid MongoDB URI Format! Received: " + cleanUri);
+            throw new RuntimeException("The connection string must start with 'mongodb://' or 'mongodb+srv://'");
         }
 
         try {
-            return MongoClients.create(mongoUri);
+            System.out.println("Connecting to MongoDB Atlas...");
+            return MongoClients.create(cleanUri);
         } catch (Exception e) {
-            throw new RuntimeException("MongoDB Connection Error: " + e.getMessage());
+            System.err.println("MongoDB Connection Error: " + e.getMessage());
+            throw new RuntimeException("Failed to create MongoClient: " + e.getMessage());
         }
     }
 }
