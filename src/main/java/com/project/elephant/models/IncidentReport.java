@@ -18,6 +18,7 @@ public class IncidentReport {
     private String name;
     private String contactNumber;
     private String username;
+    private String status = "Pending";
 
     @CreatedDate
     private LocalDateTime createdAt;
