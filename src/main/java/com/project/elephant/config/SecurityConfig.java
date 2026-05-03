@@ -71,7 +71,7 @@ public class SecurityConfig {
                 "http://localhost:5173",       // Vite local
                 "http://localhost:8081",       // Expo local
                 "http://192.168.50.231:8081",  // Your local IP
-                "https://your-hosted-website.vercel.app" // <-- REPLACE this with your actual hosted website URL
+                "https://elephantguard.vercel.app" // <-- REPLACE this with your actual hosted website URL
         ));
 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
