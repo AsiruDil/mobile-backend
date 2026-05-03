@@ -2,6 +2,7 @@ package com.project.elephant;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration;
 import org.springframework.data.mongodb.config.EnableMongoAuditing;
 
 import com.mongodb.client.MongoClient;
@@ -9,7 +10,7 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 
 
-@SpringBootApplication
+@SpringBootApplication(exclude = {UserDetailsServiceAutoConfiguration.class})
 @EnableMongoAuditing
 public class ElephantApplication {
 
