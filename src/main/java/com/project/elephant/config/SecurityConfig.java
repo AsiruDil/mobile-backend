@@ -4,6 +4,7 @@ import com.project.elephant.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -24,6 +25,11 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    // සර්වර් එක පණගැන්වෙන විට මෙම Config එක Load වෙනවාදැයි බැලීමට (Debug)
+    public SecurityConfig() {
+        System.out.println("🛡️ SecurityConfig is successfully loaded by Spring Boot Context!");
+    }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -32,31 +38,33 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                // 1. CORS සහ CSRF සැකසුම්
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.disable()) // Python වැනි පිටස්තර ස්ක්‍රිප්ට් සඳහා මෙය අනිවාර්යයෙන් disable කළ යුතුය
+
+                // 2. Session කළමනාකරණය (Stateless)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // 3. Endpoint අවසරයන් (Permissions)
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
-                        .requestMatchers("/health").permitAll()          // ← අලුතින් එකතු කළේ
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/news").permitAll()
+                        // කිසිදු බාධාවකින් තොරව (Public) පිවිසිය හැකි තැන්
+                        .requestMatchers("/health", "/api/auth/**").permitAll()
+                        .requestMatchers("/api/news", "/ws-elephant/**").permitAll()
+                        .requestMatchers("/api/danger-zones", "/api/point-locations").permitAll()
+
+                        // 🚨 Python Camera Alert එක සඳහා විශේෂ අවසරය
+                        .requestMatchers(HttpMethod.POST, "/api/sightings/alert").permitAll()
                         .requestMatchers("/api/sightings/**").permitAll()
-                        .requestMatchers("/ws-elephant/**").permitAll()
-                        .requestMatchers("/api/danger-zones").permitAll()
-                        .requestMatchers("/api/point-locations").permitAll()
 
-                        // Admin endpoints
-                        .requestMatchers("/api/admin/point-locations/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers("/api/admin/danger-zones/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers("/api/sightings/admin/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers("/api/incidents/admin/**").hasAuthority("ROLE_ADMIN")
+                        // Admin සඳහා පමණක් ඇති තැන්
                         .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers("/api/sightings/admin/**").hasAuthority("ROLE_ADMIN")
 
-                        // Authenticated user endpoints
-                        .requestMatchers("/api/incidents/report").authenticated()
+                        // අනෙකුත් සියලුම Request සඳහා Token එකක් අවශ්‍යයි
                         .anyRequest().authenticated()
                 );
 
+        // 4. JWT Filter එක ඇතුළත් කිරීම
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -66,13 +74,13 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // ✅ "*" wildcard ඉවත් කළා — allowCredentials(true) සමඟ "*" භාවිතා කළ නොහැකිය
+        // Python ස්ක්‍රිප්ට් එක සහ Vercel ඇප් එක දෙකම වැඩ කිරීමට
         configuration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:3000",
                 "http://localhost:5173",
                 "http://localhost:8081",
-                "http://192.168.50.231:8081",
-                "https://elephantguard.vercel.app"
+                "https://elephantguard.vercel.app",
+                "*" // පරීක්ෂණ මට්ටමේදී පමණක් සියල්ලට ඉඩ දෙන්න
         ));
 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
