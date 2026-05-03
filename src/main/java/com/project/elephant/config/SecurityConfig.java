@@ -37,6 +37,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints
+                        .requestMatchers("/health").permitAll()          // ← අලුතින් එකතු කළේ
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/news").permitAll()
                         .requestMatchers("/api/sightings/**").permitAll()
@@ -65,15 +66,13 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
+        // ✅ "*" wildcard ඉවත් කළා — allowCredentials(true) සමඟ "*" භාවිතා කළ නොහැකිය
         configuration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:3000",
                 "http://localhost:5173",
                 "http://localhost:8081",
                 "http://192.168.50.231:8081",
-                "https://elephantguard.vercel.app",
-                "http://localhost:5000",   // Python Flask local
-                "http://127.0.0.1:5000"   // Python Flask local (alternate)
-                // DO NOT add "*" with allowCredentials(true) — it breaks everything
+                "https://elephantguard.vercel.app"
         ));
 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
