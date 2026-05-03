@@ -65,21 +65,19 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Allowed URLs - setAllowedOrigins වෙනුවට setAllowedOriginPatterns භාවිතා කිරීම
         configuration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:3000",
-                "http://localhost:5173",       // Vite local
-                "http://localhost:8081",       // Expo local
-                "http://192.168.50.231:8081",  // Your local IP
-                "https://elephantguard.vercel.app", // Your actual hosted website URL
-                "*" // Python Script එක ඇතුළු ඕනෑම තැනකින් එන දත්තවලට ඉඩ දීමට
+                "http://localhost:5173",
+                "http://localhost:8081",
+                "http://192.168.50.231:8081",
+                "https://elephantguard.vercel.app",
+                "http://localhost:5000",   // Python Flask local
+                "http://127.0.0.1:5000"   // Python Flask local (alternate)
+                // DO NOT add "*" with allowCredentials(true) — it breaks everything
         ));
 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-
-        // Python එකෙන් එවන User-Agent සහ Accept වැනි දේවල් වලට ඉඩ දීම
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "User-Agent", "Accept", "Origin"));
-
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
